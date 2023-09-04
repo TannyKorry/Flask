@@ -40,7 +40,7 @@ class ADS(Base):
     title = Column(String, nullable=False, unique=True, index=True)
     text = Column(String, nullable=False)
     published_at = Column(DateTime, server_default=func.now())
-    user_id = Column(Integer, ForeighKey('app_users.id', ondelete='CASCADE'))
+    user_id = Column(Integer, ForeignKey('app_users.id', ondelete='CASCADE'))
     user = relationship("User", lazy="joined")
 
 
