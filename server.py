@@ -1,30 +1,24 @@
-from hashlib import md5
-from typing import Type
+from typing import Type, Union
 
 from flask import Flask, jsonify, request
 from flask.views import MethodView
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from schema import CreateUser, UpdateUser
-from models import Session, User
+from schema import CreateAds
+from models import Session, ADS
 
-app = Flask('app')
-
-# Преобразование пароля
-SALT = "fxc vbnkiui7yu6trfd"
-def hash_password(password: str):
-    password = f"{SALT}{password}"
-    password = password.encode()
-    return md5(password).hexdigest()
+app = Flask("app")
 
 
+# В случае возникновинии определенных ошибок прекратить выполнять вьюху, выполнить заданную логику и возвратить клиенту что-то на базе этой логики
 class HttpError(Exception):
-    def __init__(self, status_code: int, error_message: dict | list | str):
+    def __init__(self, status_code: int, error_message: Union[dict, list, str]):
         self.status_code = status_code
         self.error_message = error_message
 
 
+# функция, которая будет выполняться в случае возникновения ошибки
 @app.errorhandler(HttpError)
 def error_handler(er: HttpError):
     http_response = jsonify({"status": "error", "description": er.error_message})
@@ -32,7 +26,8 @@ def error_handler(er: HttpError):
     return http_response
 
 
-def validate(schema: Type[CreateUser] | Type[UpdateUser], json_data: dict):
+#
+def validate(schema, json_data: dict):
     try:
         model = schema(**json_data)
         validated_data = model.dict(exclude_none=True)
@@ -41,67 +36,57 @@ def validate(schema: Type[CreateUser] | Type[UpdateUser], json_data: dict):
     return validated_data
 
 
-def get_user(session: Session, user_id: int):
-    user = session.get(User, user_id)
-    if user is None:
-        raise HttpError(404, "user not found")
-    return user
+# функция выбросит 404, если не найдется объявление с таким id
+def get_ad(session: Session, ads_id: int):
+    ad = session.get(ADS, ads_id)
+    if ad is None:
+        raise HttpError(404, "ad not found")
+    return ad
 
 
-class UserView(MethodView):
-    
-    def get(self, user_id: int):
+class AdsView(MethodView):
+    #
+    def get(self, ads_id: int):
         with Session() as session:
-            user = get_user(session, user_id)
+            ad = get_ad(session, ads_id)
         return jsonify(
             {
-                'id': user.id,
-                'name': user.name,
-                'creation_time': user.creation_time.isoformat(),
+                "id": ad.id,
+                "title": ad.title,
+                "text": ad.text,
+                "user": ad.user,
+                "published_at": ad.creation_time.isoformat(),
             }
         )
 
-
+    #
     def post(self):
-        json_data = validate(CreateUser, request.json)
-        json_data["password"] = hash_password(json_data["password"])
+        json_data = validate(CreateAds, request.json)
 
         with Session() as session:
-            user = User(**json_data)
-            session.add(user)
+            ad = ADS(**json_data)
+            session.add(ad)
             try:
                 session.commit()
             except IntegrityError:
-                raise HttpError(409, "user already exists")
-            return jsonify({"status": "success", "id": user.id})
+                raise HttpError(409, "advertisement already exists")
+            return jsonify({"status": "success", "id": ad.id})
 
-    def patch(self, user_id: int):
-        json_data = validate(UpdateUser, request.json)
-        if 'password' in json_data:
-            json_data['password'] = hash_password(json_data['password'])
+
+    def delete(self, ads_id: int):
         with Session() as session:
-            user = get_user(session, user_id)
-            for field, value in json_data.items():
-                setattr(user, field, value)
-            session.add(user)
+            ad = get_ad(session, ads_id)
+            session.delete(ad)
             session.commit()
-            return jsonify({"status": "success", "id": user.id})
-
-    def delete(self, user_id: int):
-        with Session() as session:
-            user = get_user(session, user_id)
-            session.delete(user)
-            session.commit()
-            return jsonify({"status": "success", "id": user_id})
-     
-user_view = UserView.as_view('users')
+            return jsonify({"status": "success", "id": ads_id})
 
 
-
-app.add_url_rule('/users/<int:user_id>', view_func=user_view, methods=['GET', 'PATCH', 'DELETE'])
-app.add_url_rule('/users/', view_func=user_view, methods=['POST'])
+ads_view = AdsView.as_view("advertisements")
 
 
+app.add_url_rule("/ads/<int:ads_id>", view_func=ads_view, methods=["GET", "DELETE"])
+app.add_url_rule("/ads/", view_func=ads_view, methods=["POST"])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run()
