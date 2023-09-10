@@ -1,24 +1,22 @@
 import requests
-# # POST-запрос
-# response = requests.post(
-#     "http://127.0.0.1:5000/ads",
-#     json={
-#         "title": "asdf",
-#         "text": "xfhchbjn",
-#         "user": 'retyu'
-#     })
-# print(response.status_code)
-# print(response.json())
+# POST-запрос
+response = requests.post(
+    "http://127.0.0.1:5000/ads",
+    json={
+        "title": "Продам сервиз",
+        "text": "В отличном состоянии",
+        "user": 'Светлана'
+    })
 
-# #GET-запрос
-
+# GET-запрос
 response = requests.get(
-    "http://127.0.0.1:5000/ads/5",
-
+    "http://127.0.0.1:5000/ads/8",
 )
-# response = requests.delete(
-#     "http://127.0.0.1:5000/ads/5",
-#
-# )
+
+# DELETE-запрос
+response = requests.delete(
+    "http://127.0.0.1:5000/ads/8",
+)
+
 print(response.status_code)
 print(response.json())
