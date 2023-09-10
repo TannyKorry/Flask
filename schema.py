@@ -9,7 +9,7 @@ class CreateAds(BaseModel):
 
     @validator("title")
     def secure_title(cls, value):
-        if 1 > len(value) or len(value) > 50:
+        if len(value) < 1 or len(value) > 50:
             raise ValueError("Title should be from 1 to 50 characters")
         return value
 
@@ -18,21 +18,3 @@ class CreateAds(BaseModel):
         if len(value) > 250:
             raise ValueError("Text is too large (max 250 characters are allowed)")
         return value
-
-
-# class UpdateAds(BaseModel):
-
-#     title: Optional[str]
-#     text: Optional[str]
-
-#     @validator('title')
-#     def secure_title(cls, value):
-#         if 1 > len(value) or len(value) > 50:
-#             raise ValueError('Title should be from 1 to 50 characters')
-#         return value
-
-#     @validator('text')
-#     def secure_text(cls, value):
-#         if len(value) > 250:
-#             raise ValueError('Text is too large (max 250 characters are allowed)')
-#         return value

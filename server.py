@@ -26,7 +26,6 @@ def error_handler(er: HttpError):
     return http_response
 
 
-#
 def validate(schema, json_data: dict):
     try:
         model = schema(**json_data)
@@ -37,32 +36,26 @@ def validate(schema, json_data: dict):
 
 
 # функция выбросит 404, если не найдется объявление с таким id
-def get_ad(session: Session, ads_id: int):
+def get_ad_valid(session: Session, ads_id: int):
     ad = session.get(ADS, ads_id)
     if ad is None:
-        raise HttpError(404, "ad not found")
+        raise HttpError(404, "ads_id not found")
     return ad
 
 
 class AdsView(MethodView):
-    #
+
     def get(self, ads_id: int):
         with Session() as session:
-            ad = get_ad(session, ads_id)
+            ad = get_ad_valid(session, ads_id)
         return jsonify(
-            {
-                "id": ad.id,
-                "title": ad.title,
-                "text": ad.text,
-                "user": ad.user,
+            {"id": ad.id, "title": ad.title, "text": ad.text, "user": ad.user,
                 "published_at": ad.creation_time.isoformat(),
             }
         )
 
-    #
     def post(self):
         json_data = validate(CreateAds, request.json)
-
         with Session() as session:
             ad = ADS(**json_data)
             session.add(ad)
@@ -72,13 +65,12 @@ class AdsView(MethodView):
                 raise HttpError(409, "advertisement already exists")
             return jsonify({"status": "success", "id": ad.id})
 
-
-    def delete(self, ads_id: int):
-        with Session() as session:
-            ad = get_ad(session, ads_id)
-            session.delete(ad)
-            session.commit()
-            return jsonify({"status": "success", "id": ads_id})
+        def delete(self, ads_id: int):
+            with Session() as session:
+                ad = get_ad_valid(session, ads_id)
+                session.delete(ad)
+                session.commit()
+                return jsonify({"status": "success", "id": ads_id})
 
 
 ads_view = AdsView.as_view("advertisements")
