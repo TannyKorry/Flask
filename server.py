@@ -44,12 +44,15 @@ def get_ad_valid(session: Session, ads_id: int):
 
 
 class AdsView(MethodView):
-
     def get(self, ads_id: int):
         with Session() as session:
             ad = get_ad_valid(session, ads_id)
         return jsonify(
-            {"id": ad.id, "title": ad.title, "text": ad.text, "user": ad.user,
+            {
+                "id": ad.id,
+                "title": ad.title,
+                "text": ad.text,
+                "user": ad.user,
                 "published_at": ad.published_at.isoformat(),
             }
         )

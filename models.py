@@ -1,7 +1,15 @@
 import os
 from atexit import register
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, create_engine, func
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    create_engine,
+    func,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -22,7 +30,6 @@ Base = declarative_base(bind=engine)
 
 
 class ADS(Base):
-
     __tablename__ = "advertisements"
 
     id = Column(Integer, primary_key=True)
@@ -30,7 +37,6 @@ class ADS(Base):
     text = Column(String, nullable=True)
     user = Column(String, nullable=False)
     published_at = Column(DateTime, server_default=func.now())
-    
 
 
 Base.metadata.create_all()

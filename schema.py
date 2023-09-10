@@ -8,7 +8,6 @@ class CreateAds(BaseModel):
     text: str
     user: str
 
-
     @validator("title")
     def secure_title(cls, value):
         if len(value) < 1 or len(value) > 50:
