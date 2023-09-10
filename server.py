@@ -50,7 +50,7 @@ class AdsView(MethodView):
             ad = get_ad_valid(session, ads_id)
         return jsonify(
             {"id": ad.id, "title": ad.title, "text": ad.text, "user": ad.user,
-                "published_at": ad.creation_time.isoformat(),
+                "published_at": ad.published_at.isoformat(),
             }
         )
 
@@ -65,12 +65,12 @@ class AdsView(MethodView):
                 raise HttpError(409, "advertisement already exists")
             return jsonify({"status": "success", "id": ad.id})
 
-        def delete(self, ads_id: int):
-            with Session() as session:
-                ad = get_ad_valid(session, ads_id)
-                session.delete(ad)
-                session.commit()
-                return jsonify({"status": "success", "id": ads_id})
+    def delete(self, ads_id: int):
+        with Session() as session:
+            ad = get_ad_valid(session, ads_id)
+            session.delete(ad)
+            session.commit()
+            return jsonify({"status": "success", "id": ads_id})
 
 
 ads_view = AdsView.as_view("advertisements")
